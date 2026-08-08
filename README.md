@@ -5,6 +5,8 @@
 
 SignalRoot Agent is an incident-triage assistant for platform and reliability teams. It correlates alerts, metrics, logs, deploy history, and prior incidents to produce a root-cause hypothesis with supporting evidence and recommended next steps.
 
+![SignalRoot Agent dashboard](docs/assets/signalroot-dashboard.png)
+
 ## Highlights
 
 - Deterministic agent workflow with explicit tool calls and trace output

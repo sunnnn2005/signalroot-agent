@@ -17,6 +17,7 @@ def render_dashboard() -> str:
     .panel { border: 1px solid #2a303b; border-radius: 8px; background: #151922; padding: 18px; }
     .alert { padding: 12px; border-bottom: 1px solid #2a303b; cursor: pointer; }
     .alert:hover { background: #1e2430; }
+    .alert.selected { background: #211d2a; border-left: 3px solid #ff4d6d; }
     .muted { color: #aab1c2; font-size: 13px; }
     .pill { display: inline-block; background: #2a303b; padding: 4px 8px; border-radius: 999px; margin-top: 8px; }
     pre { white-space: pre-wrap; color: #dce3f3; line-height: 1.45; }
@@ -45,17 +46,22 @@ def render_dashboard() -> str:
   </main>
   <script>
     let selected = null;
-    async function loadAlerts() {
-      const response = await fetch('/alerts');
-      const alerts = await response.json();
-      selected = alerts[0]?.id;
-      document.querySelector('#alerts').innerHTML = alerts.map(alert => `
-        <div class="alert" onclick="selected='${alert.id}'">
+    let alertCache = [];
+    function renderAlerts() {
+      document.querySelector('#alerts').innerHTML = alertCache.map(alert => `
+        <div class="alert ${alert.id === selected ? 'selected' : ''}" onclick="selected='${alert.id}'; renderAlerts();">
           <strong>${alert.title}</strong>
           <div class="muted">${alert.service}</div>
           <span class="pill">${alert.severity}</span>
         </div>
       `).join('');
+    }
+    async function loadAlerts() {
+      const response = await fetch('/alerts');
+      alertCache = await response.json();
+      selected = alertCache[0]?.id;
+      renderAlerts();
+      if (selected) await triage();
     }
     async function triage() {
       const response = await fetch(`/alerts/${selected}/triage`, { method: 'POST' });
