@@ -86,6 +86,20 @@ docker build -t signalroot-agent .
 docker run --rm -p 8000:8000 signalroot-agent
 ```
 
+## Contributing
+
+Contributions are welcome. Good starter tasks are labeled [`good first issue`](https://github.com/sunnnn2005/signalroot-agent/labels/good%20first%20issue), and broader tasks are labeled [`help wanted`](https://github.com/sunnnn2005/signalroot-agent/labels/help%20wanted).
+
+Useful first contributions:
+
+- Add one deterministic incident scenario
+- Add one test for an edge case
+- Improve dashboard accessibility
+- Improve documentation or examples
+- Add an export format for reports
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [ROADMAP.md](ROADMAP.md) before opening a pull request.
+
 ## Repository Layout
 
 ```text
@@ -110,13 +124,7 @@ SignalRoot runs on local deterministic data. It does not connect to production s
 
 ## Roadmap
 
-See the open issues for planned work:
-
-- More incident scenarios
-- Markdown export for incident tickets
-- Real Prometheus/Loki/GitHub deploy adapters
-- Timeline view for evidence
-- Confidence calibration tests
+See [ROADMAP.md](ROADMAP.md) and the open issues for planned work.
 
 ## License
 
