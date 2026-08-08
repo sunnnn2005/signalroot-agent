@@ -10,6 +10,14 @@ assignees: ""
 
 Describe one small, self-contained change.
 
+## Suggested files
+
+- `app/data.py`
+- `app/agent.py`
+- `app/dashboard.py`
+- `tests/`
+- `docs/`
+
 ## Acceptance criteria
 
 - [ ] The change is covered by tests or documentation.

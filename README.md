@@ -98,7 +98,7 @@ Useful first contributions:
 - Improve documentation or examples
 - Add an export format for reports
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [ROADMAP.md](ROADMAP.md) before opening a pull request.
+See [CONTRIBUTING.md](CONTRIBUTING.md), [ROADMAP.md](ROADMAP.md), and [SECURITY.md](SECURITY.md) before opening a pull request.
 
 ## Repository Layout
 
@@ -121,6 +121,8 @@ tests/
 ## Safety and Scope
 
 SignalRoot runs on local deterministic data. It does not connect to production systems, execute remediation commands, or send notifications. If real observability backends are added later, they should be implemented as explicit tool adapters with tests and read-only defaults.
+
+See [SECURITY.md](SECURITY.md) for integration guidelines.
 
 ## Roadmap
 

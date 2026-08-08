@@ -1,59 +1,84 @@
-# Spec: SignalRoot Agent
+# Specification
 
-## Objective
-Build an engineering incident triage agent that simulates a large-company internal SRE platform. The system accepts service alerts, calls tools for metrics, logs, deployment history, and known incidents, then generates an evidence-based triage report with likely root cause, impact, confidence, and next steps.
+SignalRoot is a deterministic incident-triage agent for local experimentation with agentic reliability workflows.
 
-Target users are backend, infrastructure, SRE, and AI engineering internship interviewers reviewing whether this project demonstrates agent workflows beyond a generic chatbot.
+## Purpose
 
-## Tech Stack
-- Python 3.12
-- FastAPI
-- Pydantic
-- pytest
-- In-memory deterministic demo data for alerts, metrics, logs, deploys, and prior incidents
-- Optional future LLM provider boundary, but default behavior must run without paid APIs
+The system turns operational signals into a structured triage report. It is designed for inspection rather than automation theater: tool calls are explicit, evidence is typed, and the report can be tested.
+
+## Non-Goals
+
+- No production remediation.
+- No automatic rollback.
+- No required LLM provider.
+- No required external observability vendor.
+- No hidden network calls in the default path.
+
+## Functional Requirements
+
+- List available alerts.
+- Return an individual alert by id.
+- Generate a triage report for a known alert.
+- Include impact, blast radius, evidence, likely root cause, alternatives, recommendations, timestamp, and trace.
+- Return a clear 404 for unknown alerts.
+- Render a browser dashboard with the same backend data.
+
+## Runtime Contracts
+
+### Alert
+
+An alert is the entry point for the runtime. It includes service, severity, signal type, start time, and description.
+
+### EvidenceItem
+
+Evidence is a weighted observation from a tool. It must identify its source and explain the observation in a stable summary string.
+
+### RootCauseHypothesis
+
+A hypothesis contains a cause, confidence score, reasoning, and supporting evidence.
+
+### TriageReport
+
+The report is the final output. It should be useful both as JSON and as a source for future markdown/text exports.
+
+## Tool Contracts
+
+Current tools are deterministic local adapters:
+
+- `MetricsTool`
+- `LogSearchTool`
+- `DeployHistoryTool`
+- `KnownIncidentTool`
+
+Future tools should follow the same pattern:
+
+- read-only by default
+- explicit inputs
+- typed outputs
+- no hidden mutation
+- tested failure behavior
 
 ## Commands
-- Create venv: `python3.12 -m venv .venv && source .venv/bin/activate`
-- Install: `pip install -r requirements.txt -r requirements-dev.txt`
-- Run API: `uvicorn app.main:app --reload`
-- Test: `python -m pytest`
-- Docker: `docker build -t signalroot-agent . && docker run -p 8001:8000 signalroot-agent`
 
-## Project Structure
-- `app/main.py`: FastAPI entrypoint and routes
-- `app/models.py`: API contracts and typed report schemas
-- `app/data.py`: deterministic incident scenarios and telemetry
-- `app/tools.py`: metric, log, deploy, and incident lookup tools
-- `app/agent.py`: multi-step triage orchestration
-- `app/dashboard.py`: static engineer-facing dashboard
-- `tests/`: unit and API tests
-- `docs/`: architecture and usage documentation
-
-## Code Style
-Use explicit, typed Python functions with small tool boundaries:
-
-```python
-def collect_evidence(alert: Alert) -> EvidenceBundle:
-    metrics = metrics_tool.query(alert.service)
-    logs = logs_tool.search(alert.service, alert.started_at)
-    deploys = deploy_tool.recent(alert.service, alert.started_at)
-    return EvidenceBundle(metrics=metrics, logs=logs, deploys=deploys)
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+uvicorn app.main:app --reload
+python -m pytest
 ```
 
-## Testing Strategy
-- Unit tests for root-cause hypothesis generation and evidence scoring.
-- API tests for alert listing, triage report creation, health, and dashboard rendering.
-- Tests must run without network, secrets, Docker, or external services.
+Docker:
 
-## Boundaries
-- Always: keep demo data deterministic, validate API inputs, run tests before claiming done.
-- Ask first: adding paid LLM dependencies, external telemetry services, or authentication.
-- Never: commit secrets, require paid APIs for default demo, make unsupported production claims.
+```bash
+docker build -t signalroot-agent .
+docker run --rm -p 8000:8000 signalroot-agent
+```
 
-## Success Criteria
-- A user can run the API locally and open `/dashboard`.
-- At least three incident scenarios produce distinct triage reports.
-- Reports include evidence, likely root cause, confidence, blast radius, and next steps.
-- Tests pass in CI and locally.
-- README clearly explains large-company internship relevance and resume bullets.
+## Quality Bar
+
+- Tests must pass locally and in CI.
+- New scenarios should be deterministic.
+- New report fields should be represented as typed Pydantic models.
+- New tools should not require secrets in the default path.
+- Documentation should describe behavior without overstating production readiness.
