@@ -3,26 +3,45 @@
 [![test](https://github.com/sunnnn2005/signalroot-agent/actions/workflows/test.yml/badge.svg)](https://github.com/sunnnn2005/signalroot-agent/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-SignalRoot Agent is an incident-triage assistant for platform and reliability teams. It correlates alerts, metrics, logs, deploy history, and prior incidents to produce a root-cause hypothesis with supporting evidence and recommended next steps.
+SignalRoot is a small, deterministic incident-triage agent. It takes a service alert, calls a set of operational tools, ranks the evidence it finds, and returns a structured root-cause report.
+
+The project is intentionally local-first. It does not call paid APIs or external observability vendors by default. The goal is to make the agent loop inspectable: every tool call, evidence item, hypothesis, and recommendation is visible in the response.
 
 ![SignalRoot Agent dashboard](docs/assets/signalroot-dashboard.png)
 
-## Highlights
+## The Model
 
-- Deterministic agent workflow with explicit tool calls and trace output
-- FastAPI backend with documented JSON contracts
-- Built-in web dashboard for live demos
-- Realistic incident scenarios for checkout, recommendations, and payments systems
-- Test suite covering agent behavior, API routes, and dashboard rendering
-- Dockerfile and GitHub Actions workflow for repeatable delivery
+SignalRoot is built around four simple objects:
 
-## Tech Stack
+- **Alert**: the incident entry point, including service, signal, severity, and start time.
+- **Tool**: a deterministic source of operational context, such as metrics, logs, deploy history, or known incidents.
+- **Evidence**: a weighted observation produced by a tool.
+- **TriageReport**: the final report containing impact, blast radius, likely root cause, alternatives, next steps, and an agent trace.
 
-- Python 3.11+
-- FastAPI
-- Pydantic
-- Pytest
-- Vanilla HTML/CSS/JavaScript dashboard
+The agent does not hide its reasoning behind a paragraph of generated text. It builds a report from typed objects, which makes the behavior easier to test and easier to replace with real integrations later.
+
+## How It Works
+
+1. Load the alert.
+2. Query service metrics.
+3. Search logs around the alert window.
+4. Read recent deploy history.
+5. Match against known incident signatures.
+6. Convert all signals into weighted evidence.
+7. Rank root-cause hypotheses.
+8. Return a report with the supporting trace.
+
+The current scenarios cover checkout latency, recommendation errors, and payment queue saturation. They are deterministic so tests can assert the actual behavior instead of only checking that the API returns a response.
+
+## Why This Exists
+
+Most incident demos stop at dashboards and alerts. SignalRoot explores the next step: turning observability signals into an operator-facing triage loop that is structured enough to test.
+
+This is not meant to replace an SRE. It is a compact reference implementation for the agent pattern behind internal incident tools:
+
+```text
+alert -> tools -> evidence -> hypothesis -> action plan
+```
 
 ## Quick Start
 
@@ -35,38 +54,48 @@ uvicorn app.main:app --reload
 
 Open:
 
-- API docs: `http://127.0.0.1:8000/docs`
 - Dashboard: `http://127.0.0.1:8000/dashboard`
+- API docs: `http://127.0.0.1:8000/docs`
 
-## Run Tests
+Run a triage request:
+
+```bash
+curl -X POST http://127.0.0.1:8000/alerts/alert_checkout_latency/triage
+```
+
+## API Surface
+
+```text
+GET  /health
+GET  /alerts
+GET  /alerts/{alert_id}
+POST /alerts/{alert_id}/triage
+GET  /dashboard
+```
+
+## Development
 
 ```bash
 python -m pytest
 ```
 
-## Docker
+Docker:
 
 ```bash
 docker build -t signalroot-agent .
 docker run --rm -p 8000:8000 signalroot-agent
 ```
 
-## Example API Call
-
-```bash
-curl -X POST http://127.0.0.1:8000/alerts/alert_checkout_latency/triage
-```
-
-## Project Structure
+## Repository Layout
 
 ```text
 app/
-  agent.py       Agent orchestration and root-cause ranking
-  data.py        Deterministic demo alerts, metrics, logs, deploys, incidents
-  dashboard.py   Built-in demo UI
+  agent.py       Agent loop and root-cause ranking
+  data.py        Local incident scenarios
+  dashboard.py   Demo UI
   main.py        FastAPI routes
-  models.py      API and agent data models
-  tools.py       Tool abstractions used by the agent
+  models.py      Typed contracts
+  tools.py       Operational tool adapters
 docs/
   architecture.md
   spec.md
@@ -75,6 +104,20 @@ tests/
   test_api.py
 ```
 
-## Resume Summary
+## Safety and Scope
 
-Built an agentic incident-triage platform that correlates service alerts with metrics, logs, deploy history, and known incident signatures to generate ranked root-cause hypotheses, blast-radius analysis, and actionable remediation steps through a FastAPI API and interactive dashboard.
+SignalRoot runs on local deterministic data. It does not connect to production systems, execute remediation commands, or send notifications. If real observability backends are added later, they should be implemented as explicit tool adapters with tests and read-only defaults.
+
+## Roadmap
+
+See the open issues for planned work:
+
+- More incident scenarios
+- Markdown export for incident tickets
+- Real Prometheus/Loki/GitHub deploy adapters
+- Timeline view for evidence
+- Confidence calibration tests
+
+## License
+
+MIT
