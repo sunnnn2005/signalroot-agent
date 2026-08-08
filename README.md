@@ -1,5 +1,8 @@
 # SignalRoot Agent
 
+[![test](https://github.com/sunnnn2005/signalroot-agent/actions/workflows/test.yml/badge.svg)](https://github.com/sunnnn2005/signalroot-agent/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 SignalRoot Agent is an incident-triage assistant for platform and reliability teams. It correlates alerts, metrics, logs, deploy history, and prior incidents to produce a root-cause hypothesis with supporting evidence and recommended next steps.
 
 ## Highlights
